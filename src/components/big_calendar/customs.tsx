@@ -6,8 +6,19 @@ import {
   ToolbarProps,
   View,
 } from "react-big-calendar";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "../ui/button";
-import { MyEvent } from "./calendar";
+import type { MyEvent } from "./calendar";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { useEffect, useState } from "react";
 
 export const eventStyleGetter = (event: Event) => {
   // console.log("eventStyleGetter", event);
@@ -85,5 +96,71 @@ export const CustomEvent = (props: EventProps) => {
         {props.event?.end?.toLocaleTimeString()}
       </p>
     </div>
+  );
+};
+
+type EventFormModalProps = {
+  open: boolean;
+  onClose: () => void;
+  type?: "create" | "edit" | "delete";
+  onSave: (title: string) => void;
+  event?: MyEvent;
+};
+
+export const EventFormModal = ({
+  open,
+  onClose,
+  type,
+  onSave,
+  event,
+}: EventFormModalProps) => {
+  const [title, setTitle] = useState("");
+
+  // Reset title when modal opens
+  useEffect(() => {
+    setTitle(event?.title as string);
+  }, [event, open]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.trim()) {
+      onSave(title);
+    }
+  };
+
+  const handleClose = () => {
+    onClose();
+    setTitle("");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className='sm:max-w-[425px]'>
+        <DialogHeader>
+          <DialogTitle>
+            {type === "create" ? "Create Event" : "Edit Event"}
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className='grid gap-4 py-4'>
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='title' className='text-right'>
+                Title
+              </Label>
+              <Input
+                defaultValue={event?.title as string}
+                id='title'
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className='col-span-3'
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type='submit'>Save Event</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
